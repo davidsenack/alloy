@@ -1,0 +1,9 @@
+[package]
+name = "alloy"
+version = "0.1.0"
+edition = "2021"
+description = "A fast, opinionated package manager that installs software directly onto your system"
+license = "MIT"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
