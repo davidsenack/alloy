@@ -46,7 +46,9 @@ func usage() {
 	fmt.Println(`alloy - A fast, opinionated package manager
 
 Usage:
-  alloy <command> [options]
+  alloy <command> [options] [arguments]
+
+Note: Options must come before arguments (e.g., 'alloy install --dry-run ripgrep')
 
 Commands:
   install <package>   Install a package
@@ -57,9 +59,19 @@ Commands:
   version             Show version information
   help                Show this help message
 
-Options:
-  --dry-run           Run without making any changes
-  --verbose           Show detailed output`)
+Install Options:
+  --dry-run           Show what would happen without making changes
+  --verbose           Show detailed output
+  --version <ver>     Install a specific version
+
+Remove Options:
+  --dry-run           Show what would happen without making changes
+  --verbose           Show detailed output
+  --force             Force removal even if files were modified
+
+Doctor Options:
+  --verbose           Show detailed output
+  --check-files       Verify installed files exist and have correct checksums`)
 }
 
 func cmdInstall(args []string) {
@@ -295,55 +307,62 @@ func cmdInfo(args []string) {
 	}
 }
 
-func cmdDoctor(_ []string) {
+func cmdDoctor(args []string) {
+	fs := flag.NewFlagSet("doctor", flag.ExitOnError)
+	verbose := fs.Bool("verbose", false, "Show detailed output")
+	checkFiles := fs.Bool("check-files", false, "Verify installed files exist and have correct checksums")
+	fs.Parse(args)
+
 	fmt.Println("Running system health check...")
 	fmt.Println()
 
 	issues := 0
+	warnings := 0
+
+	// Get alloy directory
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("✗ Cannot determine home directory: %v\n", err)
+		os.Exit(1)
+	}
+	alloyDir := filepath.Join(home, ".alloy")
+
+	// Check alloy directory permissions
+	fmt.Println("=== Directory Permissions ===")
+	dirResults := ledger.CheckDirectoryPermissions(alloyDir)
+	for _, r := range dirResults {
+		switch r.Status {
+		case "ok":
+			fmt.Printf("✓ %s: %s\n", r.Name, r.Message)
+		case "warning":
+			fmt.Printf("⚠ %s: %s\n", r.Name, r.Message)
+			warnings++
+		case "error":
+			fmt.Printf("✗ %s: %s\n", r.Name, r.Message)
+			issues++
+		}
+	}
+	fmt.Println()
 
 	// Check ledger directory
 	ledgerDir, err := ledger.DefaultDir()
 	if err != nil {
 		fmt.Printf("✗ Cannot determine ledger directory: %v\n", err)
 		issues++
-	} else {
-		if _, err := os.Stat(ledgerDir); os.IsNotExist(err) {
-			fmt.Printf("✓ Ledger directory does not exist yet (will be created on first install)\n")
-		} else if err != nil {
-			fmt.Printf("✗ Cannot access ledger directory: %v\n", err)
-			issues++
-		} else {
-			packages, err := ledger.List(ledgerDir)
-			if err != nil {
-				fmt.Printf("✗ Cannot list packages: %v\n", err)
-				issues++
-			} else {
-				fmt.Printf("✓ Ledger directory: %s (%d packages)\n", ledgerDir, len(packages))
-			}
-		}
 	}
 
-	// Check backup directory
 	backupDir, err := ledger.DefaultBackupDir()
 	if err != nil {
 		fmt.Printf("✗ Cannot determine backup directory: %v\n", err)
 		issues++
-	} else {
-		if _, err := os.Stat(backupDir); os.IsNotExist(err) {
-			fmt.Printf("✓ Backup directory does not exist yet (will be created when needed)\n")
-		} else if err != nil {
-			fmt.Printf("✗ Cannot access backup directory: %v\n", err)
-			issues++
-		} else {
-			fmt.Printf("✓ Backup directory: %s\n", backupDir)
-		}
 	}
 
 	// Check packages directory
+	fmt.Println("=== Package Definitions ===")
 	packagesDir := "packages"
 	if _, err := os.Stat(packagesDir); os.IsNotExist(err) {
-		fmt.Printf("✗ Packages directory not found: %s\n", packagesDir)
-		issues++
+		fmt.Printf("⚠ Packages directory not found: %s\n", packagesDir)
+		warnings++
 	} else if err != nil {
 		fmt.Printf("✗ Cannot access packages directory: %v\n", err)
 		issues++
@@ -357,12 +376,15 @@ func cmdDoctor(_ []string) {
 		}
 		fmt.Printf("✓ Packages directory: %s (%d definitions)\n", packagesDir, count)
 	}
+	fmt.Println()
 
 	// Check write permissions to common install paths
+	fmt.Println("=== Install Paths ===")
 	testPaths := []string{"/usr/local/bin", "/usr/local/lib", "/usr/local/share"}
 	for _, path := range testPaths {
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			fmt.Printf("⚠ Path does not exist: %s\n", path)
+			warnings++
 		} else if err != nil {
 			fmt.Printf("✗ Cannot access path: %s: %v\n", path, err)
 			issues++
@@ -371,6 +393,7 @@ func cmdDoctor(_ []string) {
 			testFile := filepath.Join(path, ".alloy-test-"+fmt.Sprint(os.Getpid()))
 			if f, err := os.Create(testFile); err != nil {
 				fmt.Printf("⚠ Path not writable: %s (may need sudo)\n", path)
+				warnings++
 			} else {
 				f.Close()
 				os.Remove(testFile)
@@ -378,8 +401,10 @@ func cmdDoctor(_ []string) {
 			}
 		}
 	}
+	fmt.Println()
 
 	// Check for required tools
+	fmt.Println("=== Required Tools ===")
 	requiredTools := []string{"git", "tar"}
 	for _, tool := range requiredTools {
 		if _, err := findExecutable(tool); err != nil {
@@ -389,13 +414,117 @@ func cmdDoctor(_ []string) {
 			fmt.Printf("✓ Tool available: %s\n", tool)
 		}
 	}
-
 	fmt.Println()
-	if issues > 0 {
-		fmt.Printf("Found %d issue(s)\n", issues)
-		os.Exit(1)
+
+	// Check ledger integrity
+	fmt.Println("=== Ledger Integrity ===")
+	if ledgerDir != "" {
+		packages, _ := ledger.List(ledgerDir)
+		if len(packages) == 0 {
+			fmt.Println("✓ No packages installed (nothing to check)")
+		} else {
+			opts := ledger.DoctorOptions{
+				Verbose:    *verbose,
+				CheckFiles: *checkFiles,
+			}
+
+			results, err := ledger.CheckAllLedgers(ledgerDir, backupDir, opts)
+			if err != nil {
+				fmt.Printf("✗ Error checking ledgers: %v\n", err)
+				issues++
+			} else {
+				for _, r := range results {
+					if r.ParseError != nil {
+						fmt.Printf("✗ %s: ledger parse error: %v\n", r.Package, r.ParseError)
+						issues++
+						continue
+					}
+
+					if !r.HasIssues() {
+						if *verbose {
+							fmt.Printf("✓ %s: OK (%d entries)\n", r.Package, r.EntryCount)
+						}
+						continue
+					}
+
+					// Report issues
+					if len(r.MissingBackups) > 0 {
+						fmt.Printf("✗ %s: %d missing backup file(s)\n", r.Package, len(r.MissingBackups))
+						issues++
+						if *verbose {
+							for _, b := range r.MissingBackups {
+								fmt.Printf("    - %s\n", b)
+							}
+						}
+					}
+
+					if len(r.OrphanedFiles) > 0 {
+						fmt.Printf("⚠ %s: %d installed file(s) not found\n", r.Package, len(r.OrphanedFiles))
+						warnings++
+						if *verbose {
+							for _, f := range r.OrphanedFiles {
+								fmt.Printf("    - %s\n", f)
+							}
+						}
+					}
+
+					if len(r.ModifiedFiles) > 0 {
+						fmt.Printf("⚠ %s: %d installed file(s) modified externally\n", r.Package, len(r.ModifiedFiles))
+						warnings++
+						if *verbose {
+							for _, f := range r.ModifiedFiles {
+								fmt.Printf("    - %s\n", f)
+							}
+						}
+					}
+				}
+
+				if !*verbose && len(results) > 0 {
+					okCount := 0
+					for _, r := range results {
+						if !r.HasIssues() {
+							okCount++
+						}
+					}
+					if okCount > 0 {
+						fmt.Printf("✓ %d package(s) OK\n", okCount)
+					}
+				}
+			}
+
+			// Check for orphaned backups
+			orphanedBackups, err := ledger.FindOrphanedBackups(ledgerDir, backupDir)
+			if err != nil {
+				if *verbose {
+					fmt.Printf("⚠ Could not check for orphaned backups: %v\n", err)
+				}
+			} else if len(orphanedBackups) > 0 {
+				fmt.Printf("⚠ %d orphaned backup file(s) found\n", len(orphanedBackups))
+				warnings++
+				if *verbose {
+					for _, b := range orphanedBackups {
+						fmt.Printf("    - %s\n", b)
+					}
+				}
+			}
+		}
 	}
-	fmt.Println("All checks passed!")
+	fmt.Println()
+
+	// Summary
+	fmt.Println("=== Summary ===")
+	if issues > 0 {
+		fmt.Printf("Found %d error(s)", issues)
+		if warnings > 0 {
+			fmt.Printf(" and %d warning(s)", warnings)
+		}
+		fmt.Println()
+		os.Exit(1)
+	} else if warnings > 0 {
+		fmt.Printf("Found %d warning(s), no errors\n", warnings)
+	} else {
+		fmt.Println("All checks passed!")
+	}
 }
 
 // findExecutable looks for an executable in PATH.
