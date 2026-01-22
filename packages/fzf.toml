@@ -1,0 +1,19 @@
+name = "fzf"
+version = "0.56.3"
+description = "A command-line fuzzy finder"
+homepage = "https://github.com/junegunn/fzf"
+license = "MIT"
+
+[source]
+url = "https://github.com/junegunn/fzf/releases/download/v{{version}}/fzf-{{version}}-{{os}}_{{arch}}.tar.gz"
+sha256 = "d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2"
+strip = 0
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "fzf"
+dest = "{{bindir}}/fzf"
+mode = "0755"

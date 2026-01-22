@@ -1,0 +1,19 @@
+name = "lazygit"
+version = "0.44.1"
+description = "A simple terminal UI for git commands"
+homepage = "https://github.com/jesseduffield/lazygit"
+license = "MIT"
+
+[source]
+url = "https://github.com/jesseduffield/lazygit/releases/download/v{{version}}/lazygit_{{version}}_{{os}}_{{arch}}.tar.gz"
+sha256 = "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2"
+strip = 0
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "lazygit"
+dest = "{{bindir}}/lazygit"
+mode = "0755"

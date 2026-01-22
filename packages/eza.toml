@@ -1,0 +1,19 @@
+name = "eza"
+version = "0.20.10"
+description = "A modern replacement for ls"
+homepage = "https://github.com/eza-community/eza"
+license = "MIT"
+
+[source]
+url = "https://github.com/eza-community/eza/releases/download/v{{version}}/eza_{{arch}}-{{os}}.tar.gz"
+sha256 = "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"
+strip = 0
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "eza"
+dest = "{{bindir}}/eza"
+mode = "0755"

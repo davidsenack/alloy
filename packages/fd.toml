@@ -1,0 +1,65 @@
+name = "fd"
+version = "10.2.0"
+description = "A simple, fast and user-friendly alternative to find"
+homepage = "https://github.com/sharkdp/fd"
+license = "MIT"
+
+[source]
+url = "https://github.com/sharkdp/fd/releases/download/v{{version}}/fd-v{{version}}-{{arch}}-{{os}}.tar.gz"
+sha256 = "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"
+strip = 1
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "fd"
+dest = "{{bindir}}/fd"
+mode = "0755"
+
+[[install_steps]]
+type = "copy"
+src = "fd.1"
+dest = "{{mandir}}/man1/fd.1"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{docdir}}"
+
+[[install_steps]]
+type = "copy"
+src = "README.md"
+dest = "{{docdir}}/README.md"
+
+[[install_steps]]
+type = "copy"
+src = "LICENSE-MIT"
+dest = "{{docdir}}/LICENSE-MIT"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{datadir}}/bash-completion/completions"
+
+[[install_steps]]
+type = "copy"
+src = "autocomplete/fd.bash"
+dest = "{{datadir}}/bash-completion/completions/fd"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{datadir}}/zsh/site-functions"
+
+[[install_steps]]
+type = "copy"
+src = "autocomplete/_fd"
+dest = "{{datadir}}/zsh/site-functions/_fd"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{datadir}}/fish/vendor_completions.d"
+
+[[install_steps]]
+type = "copy"
+src = "autocomplete/fd.fish"
+dest = "{{datadir}}/fish/vendor_completions.d/fd.fish"

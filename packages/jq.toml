@@ -1,0 +1,18 @@
+name = "jq"
+version = "1.7.1"
+description = "Lightweight and flexible command-line JSON processor"
+homepage = "https://github.com/jqlang/jq"
+license = "MIT"
+
+[source]
+binary = "https://github.com/jqlang/jq/releases/download/jq-{{version}}/jq-{{os}}-{{arch}}"
+sha256 = "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2"
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "jq"
+dest = "{{bindir}}/jq"
+mode = "0755"

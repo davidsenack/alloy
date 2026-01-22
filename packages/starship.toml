@@ -1,0 +1,19 @@
+name = "starship"
+version = "1.21.1"
+description = "The minimal, blazing-fast, and infinitely customizable prompt for any shell"
+homepage = "https://github.com/starship/starship"
+license = "ISC"
+
+[source]
+url = "https://github.com/starship/starship/releases/download/v{{version}}/starship-{{arch}}-{{os}}.tar.gz"
+sha256 = "e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2"
+strip = 0
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "starship"
+dest = "{{bindir}}/starship"
+mode = "0755"

@@ -1,0 +1,76 @@
+name = "zoxide"
+version = "0.9.6"
+description = "A smarter cd command that learns your habits"
+homepage = "https://github.com/ajeetdsouza/zoxide"
+license = "MIT"
+
+[source]
+url = "https://github.com/ajeetdsouza/zoxide/releases/download/v{{version}}/zoxide-{{version}}-{{arch}}-{{os}}.tar.gz"
+sha256 = "f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2"
+strip = 0
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "zoxide"
+dest = "{{bindir}}/zoxide"
+mode = "0755"
+
+[[install_steps]]
+type = "copy"
+src = "man/man1/zoxide.1"
+dest = "{{mandir}}/man1/zoxide.1"
+
+[[install_steps]]
+type = "copy"
+src = "man/man1/zoxide-add.1"
+dest = "{{mandir}}/man1/zoxide-add.1"
+
+[[install_steps]]
+type = "copy"
+src = "man/man1/zoxide-import.1"
+dest = "{{mandir}}/man1/zoxide-import.1"
+
+[[install_steps]]
+type = "copy"
+src = "man/man1/zoxide-init.1"
+dest = "{{mandir}}/man1/zoxide-init.1"
+
+[[install_steps]]
+type = "copy"
+src = "man/man1/zoxide-query.1"
+dest = "{{mandir}}/man1/zoxide-query.1"
+
+[[install_steps]]
+type = "copy"
+src = "man/man1/zoxide-remove.1"
+dest = "{{mandir}}/man1/zoxide-remove.1"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{datadir}}/bash-completion/completions"
+
+[[install_steps]]
+type = "copy"
+src = "completions/zoxide.bash"
+dest = "{{datadir}}/bash-completion/completions/zoxide"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{datadir}}/zsh/site-functions"
+
+[[install_steps]]
+type = "copy"
+src = "completions/_zoxide"
+dest = "{{datadir}}/zsh/site-functions/_zoxide"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{datadir}}/fish/vendor_completions.d"
+
+[[install_steps]]
+type = "copy"
+src = "completions/zoxide.fish"
+dest = "{{datadir}}/fish/vendor_completions.d/zoxide.fish"
