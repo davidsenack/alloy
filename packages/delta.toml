@@ -1,0 +1,33 @@
+name = "delta"
+version = "0.18.2"
+description = "A syntax-highlighting pager for git, diff, grep, and blame output"
+homepage = "https://github.com/dandavison/delta"
+license = "MIT"
+
+[source]
+url = "https://github.com/dandavison/delta/releases/download/{{version}}/delta-{{version}}-{{arch}}-{{os}}.tar.gz"
+sha256 = "b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2"
+strip = 1
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "delta"
+dest = "{{bindir}}/delta"
+mode = "0755"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{docdir}}"
+
+[[install_steps]]
+type = "copy"
+src = "README.md"
+dest = "{{docdir}}/README.md"
+
+[[install_steps]]
+type = "copy"
+src = "LICENSE"
+dest = "{{docdir}}/LICENSE"

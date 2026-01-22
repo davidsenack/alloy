@@ -1,0 +1,65 @@
+name = "bat"
+version = "0.24.0"
+description = "A cat clone with syntax highlighting and Git integration"
+homepage = "https://github.com/sharkdp/bat"
+license = "MIT"
+
+[source]
+url = "https://github.com/sharkdp/bat/releases/download/v{{version}}/bat-v{{version}}-{{arch}}-{{os}}.tar.gz"
+sha256 = "b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2"
+strip = 1
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "bat"
+dest = "{{bindir}}/bat"
+mode = "0755"
+
+[[install_steps]]
+type = "copy"
+src = "bat.1"
+dest = "{{mandir}}/man1/bat.1"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{docdir}}"
+
+[[install_steps]]
+type = "copy"
+src = "README.md"
+dest = "{{docdir}}/README.md"
+
+[[install_steps]]
+type = "copy"
+src = "LICENSE-MIT"
+dest = "{{docdir}}/LICENSE-MIT"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{datadir}}/bash-completion/completions"
+
+[[install_steps]]
+type = "copy"
+src = "autocomplete/bat.bash"
+dest = "{{datadir}}/bash-completion/completions/bat"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{datadir}}/zsh/site-functions"
+
+[[install_steps]]
+type = "copy"
+src = "autocomplete/bat.zsh"
+dest = "{{datadir}}/zsh/site-functions/_bat"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{datadir}}/fish/vendor_completions.d"
+
+[[install_steps]]
+type = "copy"
+src = "autocomplete/bat.fish"
+dest = "{{datadir}}/fish/vendor_completions.d/bat.fish"
