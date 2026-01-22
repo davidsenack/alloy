@@ -66,6 +66,11 @@ func (i *Installer) Install(name string) error {
 		return fmt.Errorf("package %q is already installed", name)
 	}
 
+	// In dry-run mode, only validate and show what would happen
+	if i.DryRun {
+		return i.dryRunInstall(pkgDef)
+	}
+
 	// Fetch source
 	i.progress("Fetching source from %s", pkgDef.Source.Location())
 	srcDir, err := i.fetchSource(pkgDef)
@@ -92,10 +97,6 @@ func (i *Installer) Install(name string) error {
 	for idx, step := range steps {
 		i.progress("Step %d/%d: %s", idx+1, len(steps), describeStep(step))
 
-		if i.DryRun {
-			continue
-		}
-
 		if err := i.executeStep(step, srcDir, recorder); err != nil {
 			// Try to rollback
 			i.progress("Error during installation, rolling back...")
@@ -105,13 +106,24 @@ func (i *Installer) Install(name string) error {
 		}
 	}
 
-	if i.DryRun {
-		i.progress("Dry run complete, no changes made")
-		ledg.Delete()
-		return nil
+	i.progress("Successfully installed %s@%s", pkgDef.Name, pkgDef.Version)
+	return nil
+}
+
+// dryRunInstall simulates an installation without making any changes.
+func (i *Installer) dryRunInstall(pkgDef *pkg.Package) error {
+	source := pkgDef.ExpandedSource()
+	i.progress("[dry-run] Would fetch source from %s", source.Location())
+
+	// Show what steps would be executed
+	steps := pkgDef.ExpandedSteps("/tmp/source")
+	i.progress("[dry-run] Would execute %d install steps:", len(steps))
+
+	for idx, step := range steps {
+		i.progress("[dry-run]   Step %d: %s", idx+1, describeStep(step))
 	}
 
-	i.progress("Successfully installed %s@%s", pkgDef.Name, pkgDef.Version)
+	i.progress("[dry-run] Dry run complete, no changes made")
 	return nil
 }
 
