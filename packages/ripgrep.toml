@@ -1,0 +1,38 @@
+name = "ripgrep"
+version = "14.1.0"
+description = "Fast line-oriented search tool that recursively searches directories"
+homepage = "https://github.com/BurntSushi/ripgrep"
+license = "MIT"
+
+[source]
+url = "https://github.com/BurntSushi/ripgrep/releases/download/{{version}}/ripgrep-{{version}}-{{arch}}-unknown-{{os}}-gnu.tar.gz"
+sha256 = "1a4f0a15e249f7e1c7e8c8b9de7c5ea5e6c2e8a7d6f3c4b5a6e7f8d9c0b1a2e3"
+strip = 1
+
+[install_paths]
+prefix = "/usr/local"
+
+[[install_steps]]
+type = "copy"
+src = "rg"
+dest = "{{bindir}}/rg"
+mode = "0755"
+
+[[install_steps]]
+type = "copy"
+src = "doc/rg.1"
+dest = "{{mandir}}/man1/rg.1"
+
+[[install_steps]]
+type = "mkdir"
+path = "{{docdir}}"
+
+[[install_steps]]
+type = "copy"
+src = "README.md"
+dest = "{{docdir}}/README.md"
+
+[[install_steps]]
+type = "copy"
+src = "COPYING"
+dest = "{{docdir}}/COPYING"
